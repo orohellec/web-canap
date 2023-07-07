@@ -6,7 +6,8 @@ class Product {
       title: document.getElementById('item__title'),
       price: document.getElementById('item__price'),
       description: document.getElementById('item__description'),
-      colorsDropdown: document.getElementById('item__colors')
+      colorsDropdown: document.getElementById('item__colors'),
+      quantity: document.getElementById('item__quantity')
     };
   }
 
@@ -27,7 +28,7 @@ class Product {
 
   async insertProductInHtml() {
     if (!this.data) {
-      console.log('you need to fetch data with getProductData before to use this method')
+      console.log('No Data. You need to fetch data with getProductData before to use this method')
       return
     }
     const html = this.htmlElements
@@ -45,10 +46,55 @@ class Product {
 
     html.colorsDropdown.innerHTML = colorsOptions.join('\n')
   }
+
+  async addToCart() {
+    const chosenColor = this.htmlElements.colorsDropdown.value
+    if (!chosenColor) {
+      alert('Vous devez sélectionner une couleur avant de pouvoir ajouter cet article à votre panier')
+      return
+    }
+
+    const quantity = parseInt(this.htmlElements.quantity.value)
+    if (!quantity) {
+      alert('Vous devez au moins ajouter un article à votre panier')
+      return
+    }
+
+    Object.assign(this.data, { chosenColor: chosenColor, quantity: quantity })
+    const getProductsInCart = localStorage.getItem('products')
+    if (!getProductsInCart) {
+      localStorage.setItem('products', JSON.stringify([this.data]))
+      return
+    }
+
+    const productsInCart = JSON.parse(getProductsInCart)
+    const productIndex = productsInCart.findIndex(product => {
+      return ((product._id === this.id) && (product.chosenColor === chosenColor))
+    })
+
+    if (productIndex !== -1) {
+      const product = productsInCart[productIndex]
+      product.quantity += quantity
+    } else {
+      productsInCart.push(this.data)
+      productsInCart.sort((a, b) => {
+        if (a.id < b.id) {
+          return -1;
+        }
+        if (a.id > b.id) {
+          return 1;
+        }
+        return 0;
+      })
+    }
+
+    localStorage.setItem('products', JSON.stringify(productsInCart))
+  }
 }
 
-(async () => {
-  const product = new Product()
-  await product.getProductData()
-  await product.insertProductInHtml()
-})()
+const product = new Product();
+
+product.getProductData()
+  .then(() => {
+    product.insertProductInHtml()
+  })
