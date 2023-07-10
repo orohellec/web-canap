@@ -62,37 +62,46 @@ class Product {
 
     Object.assign(this.data, { chosenColor: chosenColor, quantity: quantity })
     const getProductsInCart = localStorage.getItem('products')
+
     if (!getProductsInCart) {
       localStorage.setItem('products', JSON.stringify([this.data]))
-      return
-    }
-
-    const productsInCart = JSON.parse(getProductsInCart)
-    const productIndex = productsInCart.findIndex(product => {
-      return ((product._id === this.id) && (product.chosenColor === chosenColor))
-    })
-
-    if (productIndex !== -1) {
-      const product = productsInCart[productIndex]
-      product.quantity += quantity
     } else {
-      productsInCart.push(this.data)
-      productsInCart.sort((a, b) => {
-        if (a.id < b.id) {
-          return -1;
-        }
-        if (a.id > b.id) {
-          return 1;
-        }
-        return 0;
+      const productsInCart = JSON.parse(getProductsInCart)
+      const productIndex = productsInCart.findIndex(product => {
+        return ((product._id === this.id) && (product.chosenColor === chosenColor))
       })
+
+      if (productIndex !== -1) {
+        const product = productsInCart[productIndex]
+        product.quantity += quantity
+      } else {
+        productsInCart.push(this.data)
+        // sort product by ids
+        productsInCart.sort((a, b) => {
+          if (a.id < b.id) {
+            return -1;
+          }
+          if (a.id > b.id) {
+            return 1;
+          }
+          return 0;
+        })
+      }
+      localStorage.setItem('products', JSON.stringify(productsInCart))
     }
 
-    localStorage.setItem('products', JSON.stringify(productsInCart))
+    const loc = location.pathname
+    const dir = loc.substring(0, loc.lastIndexOf('/'))
+
+    location.replace(`${dir}/cart.html`)
   }
 }
 
 const product = new Product();
+
+// const loc = location.pathname
+// const dir = loc.substring(0, loc.lastIndexOf('/')) + '/cart'
+// console.log(dir)
 
 product.getProductData()
   .then(() => {
