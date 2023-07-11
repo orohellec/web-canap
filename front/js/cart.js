@@ -14,6 +14,7 @@ class Cart {
     if (products) {
       this.displayPriceQuantity(products)
       this.displayProducts(products)
+      this.orderProducts()
     }
   }
 
@@ -73,7 +74,6 @@ class Cart {
   }
 
   #onQuantityChange(products, product, cartElements) {
-    console.log('yessss')
     const { cartQuantity, cartItem, cartDescription } = cartElements
     const newQuantity = parseInt(cartQuantity.value)
     const productIndex = products.findIndex(product => {
@@ -101,6 +101,47 @@ class Cart {
     products.splice(productIndex, 1)
     localStorage.setItem('products', JSON.stringify(products))
     cartItem.remove()
+  }
+
+  orderProducts() {
+    const loc = location.pathname
+    const dir = loc.substring(0, loc.lastIndexOf('/'))
+
+    const form = document.getElementById('cart__form-order')
+    form.addEventListener('submit', event => this.#onSubmitOrder(event, dir))
+  }
+
+  async #onSubmitOrder(event, dirPath) {
+    event.preventDefault()
+
+    const contact = {
+      firstName: document.getElementById('firstName').value,
+      lastName: document.getElementById('lastName').value,
+      address: document.getElementById('address').value,
+      city: document.getElementById('city').value,
+      email: document.getElementById('email').value
+    }
+
+    const productsIds = cart.products.map(product => product._id)
+
+    const data = {
+      contact: contact,
+      products: productsIds
+    }
+    try {
+      const res = await fetch('http://localhost:3000/api/products/order', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      const jsonRes = await res.json()
+      location.replace(`${dirPath}/confirmation.html?orderId=${jsonRes.orderId}`)
+    } catch (error) {
+      console.log('Fetch error: ', error)
+    }
   }
 }
 

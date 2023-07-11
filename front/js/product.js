@@ -99,10 +99,6 @@ class Product {
 
 const product = new Product();
 
-// const loc = location.pathname
-// const dir = loc.substring(0, loc.lastIndexOf('/')) + '/cart'
-// console.log(dir)
-
 product.getProductData()
   .then(() => {
     product.insertProductInHtml()
